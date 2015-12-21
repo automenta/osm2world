@@ -4,7 +4,7 @@ import static java.util.Arrays.asList;
 
 import java.awt.Color;
 
-import javax.media.opengl.GL;
+import com.jogamp.opengl.GL;
 
 import org.apache.commons.configuration.Configuration;
 import org.osm2world.core.ConversionFacade.Results;

@@ -1,25 +1,23 @@
 package org.osm2world.core.target.jogl;
 
-import static javax.media.opengl.GL.GL_REPEAT;
-import static javax.media.opengl.GL.GL_TEXTURE_2D;
-import static javax.media.opengl.GL.GL_TEXTURE_WRAP_S;
-import static javax.media.opengl.GL.GL_TEXTURE_WRAP_T;
-import static javax.media.opengl.GL2GL3.GL_CLAMP_TO_BORDER;
-import static javax.media.opengl.GL2GL3.GL_TEXTURE_BORDER_COLOR;
+import static com.jogamp.opengl.GL.GL_REPEAT;
+import static com.jogamp.opengl.GL.GL_TEXTURE_2D;
+import static com.jogamp.opengl.GL.GL_TEXTURE_WRAP_S;
+import static com.jogamp.opengl.GL.GL_TEXTURE_WRAP_T;
+import static com.jogamp.opengl.GL2GL3.GL_CLAMP_TO_BORDER;
+import static com.jogamp.opengl.GL2GL3.GL_TEXTURE_BORDER_COLOR;
 import static org.osm2world.core.target.jogl.AbstractJOGLTarget.getFloatBuffer;
 
 import java.awt.Color;
-import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL3;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL3;
 
 import org.osm2world.core.target.common.TextureData;
 import org.osm2world.core.target.common.TextureData.Wrap;
 import org.osm2world.core.target.common.material.Material;
 import org.osm2world.core.target.common.material.Material.Transparency;
 
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.texture.Texture;
 
@@ -53,9 +51,9 @@ public class DepthBufferShader extends AbstractPrimitiveShader {
 	 * @param pmvMatrix
 	 */
 	public void setPMVMatrix(PMVMatrix pmvMatrix) {
-		FloatBuffer pmvMat = FloatBuffer.allocate(16);
-		FloatUtil.multMatrixf(pmvMatrix.glGetPMatrixf(), pmvMatrix.glGetMvMatrixf(), pmvMat);
-		gl.glUniformMatrix4fv(this.getModelViewProjectionMatrixID(), 1, false, pmvMat);
+		float[] pmvMat = new float[16];
+		JOGLUtil.multMatrix(pmvMatrix.glGetPMatrixf(), pmvMatrix.glGetMvMatrixf(), pmvMat);
+		gl.glUniformMatrix4fv(this.getModelViewProjectionMatrixID(), 1, false, pmvMat, 0);
 	}
 	
 	@Override

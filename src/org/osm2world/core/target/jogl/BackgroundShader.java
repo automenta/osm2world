@@ -1,10 +1,7 @@
 package org.osm2world.core.target.jogl;
 
-import java.nio.FloatBuffer;
+import com.jogamp.opengl.GL3;
 
-import javax.media.opengl.GL3;
-
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**
@@ -36,9 +33,9 @@ public class BackgroundShader extends AbstractShader {
 	 * @param pmvMatrix the PMVMatrix containing all matrices
 	 */
 	public void setPMVMatrix(PMVMatrix pmvMatrix) {
-		FloatBuffer pmvMat = FloatBuffer.allocate(16);
-		FloatUtil.multMatrixf(pmvMatrix.glGetPMatrixf(), pmvMatrix.glGetMvMatrixf(), pmvMat);
-		gl.glUniformMatrix4fv(this.getModelViewProjectionMatrixID(), 1, false, pmvMat);
+		float[] pmvMat = new float[16];
+		JOGLUtil.multMatrix(pmvMatrix.glGetPMatrixf(), pmvMatrix.glGetMvMatrixf(), pmvMat);
+		gl.glUniformMatrix4fv(this.getModelViewProjectionMatrixID(), 1, false, pmvMat, 0);
 	}
 	
 	/**

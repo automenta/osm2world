@@ -1,14 +1,14 @@
 package org.osm2world.core.target.jogl;
 
-import static javax.media.opengl.GL.GL_FLOAT;
-import static javax.media.opengl.GL2GL3.GL_DOUBLE;
+import static com.jogamp.opengl.GL.GL_FLOAT;
+import static com.jogamp.opengl.GL2GL3.GL_DOUBLE;
 
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.media.opengl.GL3;
+import com.jogamp.opengl.GL3;
 
 import org.osm2world.core.math.AxisAlignedBoundingBoxXYZ;
 import org.osm2world.core.math.AxisAlignedBoundingBoxXZ;

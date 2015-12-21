@@ -2,7 +2,7 @@ package org.osm2world.core.target.jogl;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
-import static javax.media.opengl.GL2.GL_COMPILE;
+import static com.jogamp.opengl.GL2.GL_COMPILE;
 import static org.osm2world.core.target.common.rendering.OrthoTilesUtil.CardinalDirection.closestCardinal;
 import static org.osm2world.core.target.jogl.JOGLTargetFixedFunction.drawPrimitive;
 
@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 import org.osm2world.core.math.VectorXYZ;
 import org.osm2world.core.target.common.Primitive;

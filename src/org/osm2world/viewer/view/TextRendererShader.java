@@ -3,18 +3,23 @@ package org.osm2world.viewer.view;
 import java.awt.Color;
 import java.io.IOException;
 
-import javax.media.opengl.GL2ES2;
+import org.osm2world.core.target.jogl.JOGLUtil;
 
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.TextRenderer;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.opengl.SVertex;
-import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.graph.geom.SVertex;
+import com.jogamp.opengl.util.PMVMatrix;
 
 public class TextRendererShader implements org.osm2world.viewer.view.TextRenderer {
-	private TextRenderer textRenderer;
+	private TextRegionUtil textRegionUtil;
+	private RegionRenderer renderer;
 	private Font textRendererFont = null;
 	private int width = 0, height = 0;
 	private float scale = 1;
@@ -23,20 +28,25 @@ public class TextRendererShader implements org.osm2world.viewer.view.TextRendere
 	public TextRendererShader(GL2ES2 gl) {
 		this.gl = gl;
 		try {
+			//InputStream fontFile = getClass().getResourceAsStream("media/futura.ttf");
+			//textRendererFont = FontFactory.get(fontFile, true);
 			textRendererFont = FontFactory.getDefault().get(FontSet.FAMILY_REGULAR, FontSet.STYLE_SERIF);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		RenderState renderState = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-		textRenderer = TextRenderer.create(renderState, 0);
-		textRenderer.init(gl);
-		if (!textRenderer.isInitialized()) {
+		RenderState renderState = RenderState.createRenderState(SVertex.factory());
+		
+		/* GL_DEPTH_TEST is globally enabled. Setting this here causes defaultBlendEnable/Disable to Disable/Enable depth testing.
+	 	   This causes depth testing to get DISABLED while rendering text!*/
+		renderState.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+
+		renderer = RegionRenderer.create(renderState, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+		renderer.init(gl, Region.VBAA_RENDERING_BIT);
+		if (!renderer.isInitialized()) {
 			throw new IllegalStateException("Text renderer not initlialized.");
 		}
-
-		// Workaround to get shader initialized properly (fixes problems at first drawText call in some situations)
-		textRenderer.enable(gl, true);
-		textRenderer.enable(gl, false);
+		
+		textRegionUtil = new TextRegionUtil(Region.VBAA_RENDERING_BIT);
 	}
 
 //	@Override
@@ -49,20 +59,25 @@ public class TextRendererShader implements org.osm2world.viewer.view.TextRendere
 //	}
 
 	protected void drawText(String string, float x, float y, Color color) {
-		textRenderer.enable(gl, true);
-		textRenderer.setColorStatic(gl, color.getRed(), color.getGreen(), color.getBlue());
-		textRenderer.resetModelview(gl);
-		textRenderer.translate(gl, x, y, 0);
-		float[] posF = {0, 0, 0}; // not used in TextRendererImpl01
-		int[] texSize = {0};
-		textRenderer.drawString3D(gl, textRendererFont, string, posF, (int) (12 * scale), texSize);
-		textRenderer.enable(gl, false);
+		float pixelSize = textRendererFont.getPixelSize(14, 72);
+		
+		renderer.enable(gl, true);
+		renderer.getRenderState().setColorStatic(color.getRed(), color.getGreen(), color.getBlue(), 1.0f);
+		final PMVMatrix pmv = renderer.getMatrix();
+		pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+		pmv.glLoadIdentity();
+		pmv.glTranslatef(x, y, 0);
+		int [] viewport = JOGLUtil.getGlViewport(gl); // save viewport as it gets overwritten in drawString3D
+		textRegionUtil.drawString3D(gl, renderer, textRendererFont, pixelSize*scale, string, null , new int[]{8});
+		gl.glViewport(viewport[0], viewport[1], viewport[2], viewport[3]); // restore saved viewport
+		renderer.enable(gl, false);
 	}
 	
 	@Override
 	public void destroy() {
-		textRenderer.destroy(gl);
-		textRenderer = null;
+		renderer.destroy(gl);
+		renderer = null;
+		textRegionUtil = null;
 		textRendererFont = null;
 		gl = null;
 	}
@@ -81,7 +96,7 @@ public class TextRendererShader implements org.osm2world.viewer.view.TextRendere
 	public void reshape(int width, int height) {
 		this.width = width;
 		this.height = height;
-		textRenderer.reshapeOrtho(gl, width, height, -100000, 100000);
+		renderer.reshapeOrtho(width, height, -100000, 100000);
 	}
 
 	@Override

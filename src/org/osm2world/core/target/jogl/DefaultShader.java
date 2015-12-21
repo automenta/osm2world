@@ -1,20 +1,20 @@
 package org.osm2world.core.target.jogl;
 
-import static javax.media.opengl.GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
-import static javax.media.opengl.GL.GL_REPEAT;
-import static javax.media.opengl.GL.GL_TEXTURE_2D;
-import static javax.media.opengl.GL.GL_TEXTURE_MAX_ANISOTROPY_EXT;
-import static javax.media.opengl.GL.GL_TEXTURE_WRAP_S;
-import static javax.media.opengl.GL.GL_TEXTURE_WRAP_T;
-import static javax.media.opengl.GL2GL3.GL_CLAMP_TO_BORDER;
-import static javax.media.opengl.GL2GL3.GL_TEXTURE_BORDER_COLOR;
+import static com.jogamp.opengl.GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+import static com.jogamp.opengl.GL.GL_REPEAT;
+import static com.jogamp.opengl.GL.GL_TEXTURE_2D;
+import static com.jogamp.opengl.GL.GL_TEXTURE_MAX_ANISOTROPY_EXT;
+import static com.jogamp.opengl.GL.GL_TEXTURE_WRAP_S;
+import static com.jogamp.opengl.GL.GL_TEXTURE_WRAP_T;
+import static com.jogamp.opengl.GL2GL3.GL_CLAMP_TO_BORDER;
+import static com.jogamp.opengl.GL2GL3.GL_TEXTURE_BORDER_COLOR;
 import static org.osm2world.core.target.jogl.AbstractJOGLTarget.getFloatBuffer;
 
 import java.awt.Color;
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL3;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL3;
 
 import org.osm2world.core.math.VectorXYZ;
 import org.osm2world.core.target.common.TextureData;
@@ -141,9 +141,9 @@ public class DefaultShader extends AbstractPrimitiveShader {
 	public void setPMVMatrix(PMVMatrix pmvMatrix) {
 		gl.glUniformMatrix4fv(this.getProjectionMatrixID(), 1, false, pmvMatrix.glGetPMatrixf());
 		gl.glUniformMatrix4fv(this.getModelViewMatrixID(), 1, false, pmvMatrix.glGetMvMatrixf());
-		FloatBuffer pmvMat = FloatBuffer.allocate(16);
-		FloatUtil.multMatrixf(pmvMatrix.glGetPMatrixf(), pmvMatrix.glGetMvMatrixf(), pmvMat);
-		gl.glUniformMatrix4fv(this.getModelViewProjectionMatrixID(), 1, false, pmvMat);
+		float[] pmvMat = new float[16];
+		JOGLUtil.multMatrix(pmvMatrix.glGetPMatrixf(), pmvMatrix.glGetMvMatrixf(), pmvMat);
+		gl.glUniformMatrix4fv(this.getModelViewProjectionMatrixID(), 1, false, pmvMat, 0);
 		gl.glUniformMatrix4fv(this.getNormalMatrixID(), 1, false, pmvMatrix.glGetMvitMatrixf());
 	}
 	
@@ -472,15 +472,14 @@ public class DefaultShader extends AbstractPrimitiveShader {
 					 0,    0.5f, 0,    0,
 					 0,    0,    0.5f, 0f,
 					 0.5f, 0.5f, 0.5f, 1.0f};
-		FloatBuffer bb = FloatBuffer.wrap(b);
 		
 		// PMV of light source
-		FloatBuffer pmvMat = FloatBuffer.allocate(16);
-		FloatUtil.multMatrixf(pmvMatrix.glGetPMatrixf(), pmvMatrix.glGetMvMatrixf(), pmvMat);
+		float[] pmvMat = new float[16];
+		JOGLUtil.multMatrix(pmvMatrix.glGetPMatrixf(), pmvMatrix.glGetMvMatrixf(), pmvMat);
+
+		float[] shadowMat = new float[16];
+		FloatUtil.multMatrix(b, pmvMat, shadowMat);
 		
-		FloatBuffer shadowMat = FloatBuffer.allocate(16);
-		FloatUtil.multMatrixf(bb, pmvMat, shadowMat);
-		
-		gl.glUniformMatrix4fv(this.getShadowMatrixID(), 1, false, shadowMat);
+		gl.glUniformMatrix4fv(this.getShadowMatrixID(), 1, false, shadowMat, 0);
 	}
 }
